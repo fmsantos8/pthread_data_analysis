@@ -3,11 +3,19 @@ import os
 
 os.system('cls' if os.name == 'nt' else 'clear')
 
-FILE_TO_PROCESS = 'devices.csv'
-OUTPUT_FILE = FILE_TO_PROCESS.replace('.csv', '_expected.csv')
+FILE_TO_PROCESS = 'sample_data.csv'
+OUTPUT_FILE = FILE_TO_PROCESS.replace('.csv', '_clean.csv')
 
 file_path = FILE_TO_PROCESS
 data = pd.read_csv(file_path, sep='|')
+
+if data.empty:
+    print("O arquivo está vazio.")
+    exit(1)
+
+# remove OUTPUT_FILE if it exists
+if os.path.exists(OUTPUT_FILE):
+    os.remove(OUTPUT_FILE)
 
 print(f"Total number of rows: {data.shape[0]}") # Total number of rows: 6167875
 
@@ -32,37 +40,10 @@ print(f"Rows after removing all sensor null rows: {data.shape[0]}") # Rows after
 data = data[data['data'] >= '2024-03-01']
 print(f"Total number of rows with date >= '2024-03-01': {data.shape[0]}") # Total number of rows with data >= '2024-03-01': 4175008
 
-# Cria coluna "ano-mes"
-data['ano-mes'] = data['data'].dt.to_period('M').astype(str)
-
-# Sensores a serem analisados
-sensors = ['temperatura', 'umidade', 'luminosidade', 'ruido', 'eco2', 'etvoc']
-
-# Lista para armazenar os resultados
-result_rows = []
-
-# Agrupa por dispositivo e ano-mês
-grouped = data.groupby(['device', 'ano-mes'])
-
-for (device, year_month), group in grouped:
-    for sensor in sensors:
-        max_val = group[sensor].max()
-        min_val = group[sensor].min()
-        mean_val = group[sensor].mean()
-        
-        result_rows.append({
-            'device': device,
-            'ano-mes': year_month,
-            'sensor': sensor,
-            'valor_maximo': round(max_val, 2),
-            'valor_medio': round(mean_val, 2),
-            'valor_minimo': round(min_val, 2),
-        })
-
-# Cria DataFrame de resultados
-result_df = pd.DataFrame(result_rows)
+# Ordena as linhas por 'device' e 'data'
+data = data.sort_values(by=['device', 'data'])
 
 # Salva resultados em CSV
 output_file = OUTPUT_FILE
-result_df.to_csv(output_file, sep=';', index=False)
+data.to_csv(output_file, sep='|', index=False)
 print(f"Arquivo de saída gerado: {output_file}")
