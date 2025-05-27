@@ -11,6 +11,7 @@ RUN apt-get update && \
     python3 \
     python3-pip \
     python3-venv && \
+    gdb \
     apt-get clean
 
 WORKDIR /app
@@ -18,7 +19,7 @@ WORKDIR /app
 # Create virtual environment and install pandas inside it
 RUN python3 -m venv /app/venv && \
     /app/venv/bin/pip install --upgrade pip && \
-    /app/venv/bin/pip install pandas
+    /app/venv/bin/pip install pandas 
 
 # Default command
 CMD make

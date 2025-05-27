@@ -1,6 +1,6 @@
 #include "lib_csv_private.h"
 
-static char *copy_field(const char *start, uint32_t size) {
+char *copy_field(const char *start, uint32_t size) {
     char *field = malloc(size + 1);
     if (field) {
         memcpy(field, start, size);
@@ -9,7 +9,7 @@ static char *copy_field(const char *start, uint32_t size) {
     return field;
 }
 
-static char **get_fields(const char *line, char delimiter, uint32_t expected_fields, uint32_t *count) {
+char **get_fields(const char *line, char delimiter, uint32_t expected_fields, uint32_t *count) {
     char **fields = malloc(sizeof(char *) * expected_fields);
     uint32_t field_index = 0;
     const char *start = line;
@@ -31,7 +31,7 @@ static char **get_fields(const char *line, char delimiter, uint32_t expected_fie
     return fields;
 }
 
-static uint32_t get_number_of_columns(const char *line, char delimiter) {
+uint32_t get_number_of_columns(const char *line, char delimiter) {
     uint32_t delimiters = 0;
     const char *pointer = line;
 

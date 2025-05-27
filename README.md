@@ -37,6 +37,10 @@ Se desejar acessar o container de forma interativa, use o comando abaixo:
 docker run --rm -it -v ${PWD}:/app pthread_data_analysis /bin/bash
 ```
 
+### 4. TODO: DOCUMENTAR
+
+# source /app/venv/bin/activate
+
 Dentro do container, você pode executar o `make` manualmente para compilar e rodar o projeto.
 
 ## Estrutura do Projeto

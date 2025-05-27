@@ -8,10 +8,10 @@
 
 #define MAX_LINE_LENGTH 1024 /** Maximum line length (bytes) */
 
-static char *copy_field(const char *start, uint32_t size);
+char *copy_field(const char *start, uint32_t size);
 
-static char **get_fields(const char *line, char delimiter, uint32_t expected_fields, uint32_t *count);
+char **get_fields(const char *line, char delimiter, uint32_t expected_fields, uint32_t *count);
 
-static uint32_t get_number_of_columns(const char *line, char delimiter);
+uint32_t get_number_of_columns(const char *line, char delimiter);
 
 #endif
