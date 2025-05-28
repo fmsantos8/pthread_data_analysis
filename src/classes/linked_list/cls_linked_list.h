@@ -14,6 +14,7 @@ typedef struct node_t {
 
 typedef struct linked_list_t {
     node_t *head;
+    node_t *tail;
 
     uint32_t size; /** Number of elements in the list */
 } linked_list_t;
