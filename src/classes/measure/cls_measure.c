@@ -62,5 +62,8 @@ void cls_measure_date_from_string(date_t *date, const char *string) {
     date->year = (uint16_t)atoi(year_str);
     date->month = (uint8_t)atoi(month_str);
 
-    assert(date->year >= 2024 && date->month >= 3); // TODO: REMOVE
+    assert(date->year >= 2024);
+    if (date->year == 2024) {
+        assert(date->month >= 3);
+    }
 }

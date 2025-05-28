@@ -3,15 +3,15 @@ FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM xterm
 
-# Install required packages including python3-venv
+# Install required packages including python3-venv and gdb
 RUN apt-get update && \
     apt-get install -y \
     build-essential \
     make \
     python3 \
     python3-pip \
-    python3-venv && \
-    gdb \
+    python3-venv \
+    gdb && \
     apt-get clean
 
 WORKDIR /app
