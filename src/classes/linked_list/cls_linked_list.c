@@ -67,6 +67,11 @@ void cls_linked_list_remove(linked_list_t *list, uint32_t index) {
 }
 
 void cls_linked_list_free(linked_list_t *list) {
+
+    if (list == NULL) {
+        return; // Handle null list case
+    }
+
     node_t *current = list->head;
     while (current != NULL) {
         node_t *next = current->next;
