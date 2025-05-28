@@ -32,19 +32,29 @@ void cls_measure_deinit(measure_t *measure) {
 }
 
 float cls_measure_reading_from_string(const char *string) {
-
     if (!string) {
-        return FLT_MAX; // Handle null string case
+        return FLT_MAX;
     }
 
-    char *endptr;
-    float value = strtof(string, &endptr);
+    float result = 0.0f;
+    const char *p = string;
 
-    if (endptr == string || *endptr != '\0') {
-        return FLT_MAX; // Invalid conversion, return 0.0
+    // Process integer part
+    while (*p && *p != '.') {
+        if (*p < '0' || *p > '9')
+            return FLT_MAX;
+        result = result * 10.0f + (*p - '0');
+        p++;
     }
 
-    return value;
+    if (*p != '.' || *(p + 1) < '0' || *(p + 1) > '9' || *(p + 2) != '\0') {
+        return FLT_MAX;
+    }
+
+    // Decimal part
+    result += (float)(*(p + 1) - '0') / 10.0f;
+
+    return result;
 }
 
 void cls_measure_date_from_string(date_t *date, const char *string) {
