@@ -1,7 +1,7 @@
 FROM ubuntu:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV TERM xterm
+ENV TERM=xterm
 
 # Install required packages including python3-venv and gdb
 RUN apt-get update && \
@@ -21,5 +21,4 @@ RUN python3 -m venv /app/venv && \
     /app/venv/bin/pip install --upgrade pip && \
     /app/venv/bin/pip install pandas 
 
-# Default command
-CMD make
+CMD ["make"]
