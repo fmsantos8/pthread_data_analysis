@@ -1,11 +1,14 @@
 import pandas as pd
 import os
 
-os.system('cls' if os.name == 'nt' else 'clear')
-
 FILE_TO_PROCESS = 'devices.csv'
 OUTPUT_FILE_CLEAN = FILE_TO_PROCESS.replace('.csv', '_clean.csv')
 OUTPUT_FILE_EXPECTED = FILE_TO_PROCESS.replace('.csv', '_expected.csv')
+
+if os.path.exists(OUTPUT_FILE_CLEAN):
+    if os.path.exists(OUTPUT_FILE_EXPECTED):
+        print(f"Os arquivos {OUTPUT_FILE_CLEAN} e {OUTPUT_FILE_EXPECTED} já existem. Abortando processo de limpeza dos dados.")
+        exit(1)
 
 file_path = FILE_TO_PROCESS
 data = pd.read_csv(file_path, sep='|')

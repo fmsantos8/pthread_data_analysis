@@ -19,6 +19,7 @@ WORKDIR /app
 
 COPY . /app
 
-CMD unzip -o /app/devices.zip -d /app && \
-    python3 /app/prepare_data.py && \
-    make
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+CMD ["/app/entrypoint.sh"]
