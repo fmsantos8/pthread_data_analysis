@@ -9,7 +9,7 @@ else
 fi
 
 echo "Executando prepare_data.py para preparar os dados..."
-python3 /app/prepare_data.py
+/app/venv/bin/python /app/prepare_data.py
 
 echo "Analisando dados..."
 make

@@ -10,7 +10,6 @@ RUN apt-get update && \
     python3 \
     python3-pip \
     python3-venv \
-    python3-pandas \
     gdb \
     unzip && \
     apt-get clean
@@ -18,6 +17,10 @@ RUN apt-get update && \
 WORKDIR /app
 
 COPY . /app
+
+RUN python3 -m venv /app/venv && \
+    /app/venv/bin/pip install --upgrade pip && \
+    /app/venv/bin/pip install pandas
 
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
