@@ -84,7 +84,7 @@ void cls_device_add_measure(device_t *device, measure_t *measure) {
     cls_linked_list_add(device->measures, measure);
 }
 
-void cls_device_calculate_average_readings(device_t *device) {
+void cls_device_process_readings(device_t *device) {
 
     if (!device || !device->measures) {
         return; // Handle null device or no measures

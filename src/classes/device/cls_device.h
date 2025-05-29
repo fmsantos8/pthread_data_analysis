@@ -21,7 +21,7 @@ typedef struct {
 device_t *cls_device_init(const char *name);
 
 void cls_device_add_measure(device_t *device, measure_t *measure);
-void cls_device_calculate_average_readings(device_t *device);
+void cls_device_process_readings(device_t *device);
 float cls_device_get_minimum_reading(const device_t *device, sensor_type_t sensor, date_t *date);
 float cls_device_get_average_reading(const device_t *device, sensor_type_t sensor, date_t *date);
 float cls_device_get_maximum_reading(const device_t *device, sensor_type_t sensor, date_t *date);
