@@ -3,7 +3,6 @@ FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM=xterm
 
-# Install required packages including python3-venv and gdb
 RUN apt-get update && \
     apt-get install -y \
     build-essential \
@@ -11,14 +10,15 @@ RUN apt-get update && \
     python3 \
     python3-pip \
     python3-venv \
-    gdb && \
+    python3-pandas \
+    gdb \
+    unzip && \
     apt-get clean
 
 WORKDIR /app
 
-# Create virtual environment and install pandas inside it
-RUN python3 -m venv /app/venv && \
-    /app/venv/bin/pip install --upgrade pip && \
-    /app/venv/bin/pip install pandas 
+COPY . /app
 
-CMD ["make"]
+CMD unzip -o /app/devices.zip -d /app && \
+    python3 /app/prepare_data.py && \
+    make

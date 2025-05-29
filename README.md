@@ -28,7 +28,7 @@ docker run --rm -v $(pwd):/app pthread_data_analysis
 #### Para Windows (PowerShell):
 
 ```powershell
-docker run --rm -v ${PWD}:/app pthread_data_analysisí
+docker run --rm -v ${PWD}:/app pthread_data_analysis
 ```
 
 ### 3. Execução iterativa (opcional)
