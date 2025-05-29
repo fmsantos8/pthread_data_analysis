@@ -22,15 +22,6 @@ measure_t *cls_measure_init(date_t *date, sensor_readings_t *readings) {
     return measure;
 }
 
-void cls_measure_deinit(measure_t *measure) {
-
-    if (!measure) {
-        return; // Handle null pointer
-    }
-
-    free(measure); // Free the allocated memory for measure
-}
-
 float cls_measure_reading_from_string(const char *string) {
     if (!string) {
         return FLT_MAX;
@@ -82,4 +73,13 @@ void cls_measure_date_from_string(date_t *date, const char *string) {
     if (date->year == 2024) {
         assert(date->month >= 3);
     }
+}
+
+void cls_measure_deinit(measure_t *measure) {
+
+    if (!measure) {
+        return; // Handle null pointer
+    }
+
+    free(measure); // Free the allocated memory for measure
 }

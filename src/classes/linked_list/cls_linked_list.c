@@ -66,7 +66,7 @@ void cls_linked_list_remove(linked_list_t *list, uint32_t index) {
     list->size--;
 }
 
-void cls_linked_list_free(linked_list_t *list) {
+void cls_linked_list_deinit(linked_list_t *list) {
 
     if (list == NULL) {
         return; // Handle null list case

@@ -27,7 +27,7 @@ node_t *cls_linked_list_get(linked_list_t *list, uint32_t index);
 
 void cls_linked_list_remove(linked_list_t *list, uint32_t index);
 
-void cls_linked_list_free(linked_list_t *list);
+void cls_linked_list_deinit(linked_list_t *list);
 
 static inline node_t *cls_linked_list_get_next(node_t *node) {
     if (node == NULL) {

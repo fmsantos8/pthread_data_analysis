@@ -10,11 +10,28 @@ static void free_stats_data(linked_list_t *stats) {
 
     node_t *current = cls_linked_list_get(stats, 0);
     while (current != NULL) {
+        stats_t *stats = (stats_t *)cls_linked_list_get_data(current);
+        cls_stats_deinit(stats);
+
+        current = cls_linked_list_get_next(current);
+    }
+
+    cls_linked_list_deinit(stats);
+}
+
+static void free_measure_data(linked_list_t *measures) {
+    if (!measures) {
+        return;
+    }
+
+    node_t *current = cls_linked_list_get(measures, 0);
+    while (current != NULL) {
         measure_t *measure = (measure_t *)cls_linked_list_get_data(current);
         cls_measure_deinit(measure);
 
         current = cls_linked_list_get_next(current);
     }
+    cls_linked_list_deinit(measures);
 }
 
 static stats_t *get_stats_by_date(linked_list_t *stats, date_t *date) {
@@ -137,4 +154,14 @@ float cls_device_get_maximum_reading(const device_t *device, sensor_type_t senso
     }
 
     return cls_stats_get_maximum_reading(stats, sensor);
+}
+
+void cls_device_deinit(device_t *device) {
+    if (!device) {
+        return; // Handle null pointer
+    }
+
+    free_measure_data(device->measures);
+    free_stats_data(device->stats);
+    free(device); // Free the allocated memory for device
 }

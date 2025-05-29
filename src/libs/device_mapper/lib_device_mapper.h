@@ -7,4 +7,6 @@
 
 linked_list_t *lib_device_mapper_from_csv(csv_data_t *csv);
 
+csv_data_t *lib_device_mapper_to_csv(linked_list_t *devices);
+
 #endif

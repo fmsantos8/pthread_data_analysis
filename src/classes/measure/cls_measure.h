@@ -29,11 +29,12 @@ typedef struct {
 } measure_t;
 
 measure_t *cls_measure_init(date_t *date, sensor_readings_t *data);
-void cls_measure_deinit(measure_t *measure);
 
 float cls_measure_reading_from_string(const char *string);
 
 void cls_measure_date_from_string(date_t *date, const char *string);
+
+void cls_measure_deinit(measure_t *measure);
 
 static inline date_t *cls_measure_get_date(measure_t *measure) {
     if (!measure) {

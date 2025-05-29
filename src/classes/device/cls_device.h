@@ -26,4 +26,6 @@ float cls_device_get_minimum_reading(const device_t *device, sensor_type_t senso
 float cls_device_get_average_reading(const device_t *device, sensor_type_t sensor, date_t *date);
 float cls_device_get_maximum_reading(const device_t *device, sensor_type_t sensor, date_t *date);
 
+void cls_device_deinit(device_t *device);
+
 #endif

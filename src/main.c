@@ -11,76 +11,103 @@
 #include "libs/csv/lib_csv.h"
 #include "libs/device_mapper/lib_device_mapper.h"
 
-static char *sensor_type_to_string(sensor_type_t sensor) {
-    switch (sensor) {
-        case SENSOR_TEMPERATURE:
-            return "temperatura";
-        case SENSOR_HUMIDITY:
-            return "umidade";
-        case SENSOR_LIGHT:
-            return "luminosidade";
-        case SENSOR_NOISE:
-            return "ruido";
-        case SENSOR_ECO2:
-            return "eco2";
-        case SENSOR_ETVOC:
-            return "etvoc";
-        default:
-            return "Unknown Sensor";
+static pthread_mutex_t device_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static linked_list_t *device_queue = NULL;
+static node_t *current_device_node = NULL;
+
+device_t *get_next_device_to_process(void) {
+    pthread_mutex_lock(&device_mutex);
+
+    if (device_queue == NULL) {
+        pthread_mutex_unlock(&device_mutex);
+        return NULL; // No devices to process
     }
+
+    if (current_device_node == NULL) {
+        current_device_node = cls_linked_list_get(device_queue, 0);
+    } else {
+        current_device_node = cls_linked_list_get_next(current_device_node);
+    }
+
+    if (current_device_node == NULL) {
+        pthread_mutex_unlock(&device_mutex);
+        return NULL; // No more devices to process
+    }
+
+    device_t *device = (device_t *)cls_linked_list_get_data(current_device_node);
+    pthread_mutex_unlock(&device_mutex);
+    return device; // Return the next device to process
+}
+
+void *processing_thread(void *arg) {
+    (void)arg;
+
+    while (1) {
+        device_t *device = get_next_device_to_process();
+        if (device == NULL) {
+            break; // No more devices to process
+        }
+
+        cls_device_calculate_average_readings(device);
+    }
+
+    printf("Thread %ld finished processing devices.\n", pthread_self());
+    pthread_exit(NULL);
 }
 
 int main(void) {
 
+    long cores = sysconf(_SC_NPROCESSORS_ONLN);
+    if (cores < 1) {
+        return 1;
+    }
+
+    pthread_mutex_init(&device_mutex, NULL);
+
     csv_data_t *data = lib_csv_parse_file("devices_clean.csv", '|');
     if (!data) {
-        printf("Failed to parse CSV file.\n");
         return 1;
     }
 
     linked_list_t *devices = lib_device_mapper_from_csv(data);
+    lib_csv_free(data);
 
-    uint32_t number_of_devices = cls_linked_list_size(devices);
-    printf("Number of devices: %u\n", number_of_devices);
+    device_queue = devices;
 
-    FILE *output_file = fopen("output.csv", "w");
-    if (!output_file) {
-        printf("Failed to open output file.\n");
-        cls_linked_list_free(devices);
+    pthread_t threads[cores];
+    for (long i = 0; i < cores; ++i) {
+        if (pthread_create(&threads[i], NULL, processing_thread, NULL) != 0) {
+            printf("Failed to create thread %ld.\n", i);
+            cls_linked_list_deinit(devices);
+            return 1;
+        } else {
+            printf("Thread %ld created successfully.\n", i);
+        }
+    }
+
+    for (long i = 0; i < cores; ++i) {
+        if (pthread_join(threads[i], NULL) != 0) {
+            printf("Failed to join thread %ld.\n", i);
+            cls_linked_list_deinit(devices);
+            return 1;
+        }
+    }
+
+    printf("All threads finished processing.\n");
+    data = lib_device_mapper_to_csv(devices);
+
+    // TODO: FREE DEVICES
+
+    if (!data) {
         return 1;
     }
-    fprintf(output_file, "device;ano-mes;sesnor;valor_maximo;valor_medio;valor_minimo\n");
 
-    node_t *current_device = cls_linked_list_get(devices, 0);
-    while (current_device != NULL) {
-        device_t *device = (device_t *)cls_linked_list_get_data(current_device);
-        if (device) {
-
-            cls_device_calculate_average_readings(device);
-
-            node_t *current_stats = cls_linked_list_get(device->stats, 0);
-            while (current_stats != NULL) {
-                stats_t *stats = (stats_t *)cls_linked_list_get_data(current_stats);
-
-                if (stats) {
-                    for (uint32_t j = 0; j < SENSOR_MAX; ++j) {
-                        if (stats->average_count[j] > 0) {
-
-                            float min_reading = cls_device_get_minimum_reading(device, j, &stats->date);
-                            float avg_reading = cls_device_get_average_reading(device, j, &stats->date);
-                            float max_reading = cls_device_get_maximum_reading(device, j, &stats->date);
-                            printf("%s;%u-%02u;%s;%.2f;%.2f;%.2f\n", device->name, stats->date.year, stats->date.month, sensor_type_to_string(j), max_reading, avg_reading, min_reading);
-                            fprintf(output_file, "%s;%u-%02u;%s;%.2f;%.2f;%.2f\n", device->name, stats->date.year, stats->date.month, sensor_type_to_string(j), max_reading, avg_reading, min_reading);
-                        }
-                    }
-                }
-                current_stats = cls_linked_list_get_next(current_stats);
-            }
-        }
-        current_device = cls_linked_list_get_next(current_device);
+    if (!lib_csv_write_file("devices_processed.csv", data, ';')) {
+        printf("Failed to write CSV file.\n");
+        lib_csv_free(data);
+        return 1;
     }
-
-    fclose(output_file);
 
     return 0;
 }
