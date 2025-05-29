@@ -38,6 +38,12 @@ float cls_measure_reading_from_string(const char *string) {
 
     float result = 0.0f;
     const char *p = string;
+    int sign = 1;
+
+    if (*p == '-') {
+        sign = -1;
+        p++;
+    }
 
     // Process integer part
     while (*p && *p != '.') {
@@ -54,7 +60,7 @@ float cls_measure_reading_from_string(const char *string) {
     // Decimal part
     result += (float)(*(p + 1) - '0') / 10.0f;
 
-    return result;
+    return sign * result;
 }
 
 void cls_measure_date_from_string(date_t *date, const char *string) {

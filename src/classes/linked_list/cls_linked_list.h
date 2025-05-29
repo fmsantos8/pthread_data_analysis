@@ -23,11 +23,25 @@ linked_list_t *cls_linked_list_init(void);
 
 void cls_linked_list_add(linked_list_t *list, void *data);
 
-void *cls_linked_list_get_data(linked_list_t *list, uint32_t index);
+node_t *cls_linked_list_get(linked_list_t *list, uint32_t index);
 
 void cls_linked_list_remove(linked_list_t *list, uint32_t index);
 
 void cls_linked_list_free(linked_list_t *list);
+
+static inline node_t *cls_linked_list_get_next(node_t *node) {
+    if (node == NULL) {
+        return NULL; // Handle null node case
+    }
+    return node->next; // Return the next node
+}
+
+static inline void *cls_linked_list_get_data(node_t *node) {
+    if (node == NULL) {
+        return NULL;
+    }
+    return node->data;
+}
 
 static inline uint32_t cls_linked_list_size(linked_list_t *list) {
     return list->size;

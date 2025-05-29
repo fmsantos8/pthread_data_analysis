@@ -2,6 +2,7 @@
 #define __CLS_MEASURE_H__
 
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef struct {
     uint8_t month;
@@ -33,5 +34,19 @@ void cls_measure_deinit(measure_t *measure);
 float cls_measure_reading_from_string(const char *string);
 
 void cls_measure_date_from_string(date_t *date, const char *string);
+
+static inline date_t *cls_measure_get_date(measure_t *measure) {
+    if (!measure) {
+        return NULL;
+    }
+    return &measure->date;
+}
+
+static inline sensor_readings_t *cls_measure_get_readings(measure_t *measure) {
+    if (!measure) {
+        return NULL;
+    }
+    return &measure->readings;
+}
 
 #endif

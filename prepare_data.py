@@ -3,8 +3,9 @@ import os
 
 os.system('cls' if os.name == 'nt' else 'clear')
 
-FILE_TO_PROCESS = 'sample_data.csv'
-OUTPUT_FILE = FILE_TO_PROCESS.replace('.csv', '_clean.csv')
+FILE_TO_PROCESS = 'devices.csv'
+OUTPUT_FILE_CLEAN = FILE_TO_PROCESS.replace('.csv', '_clean.csv')
+OUTPUT_FILE_EXPECTED = FILE_TO_PROCESS.replace('.csv', '_expected.csv')
 
 file_path = FILE_TO_PROCESS
 data = pd.read_csv(file_path, sep='|')
@@ -13,9 +14,9 @@ if data.empty:
     print("O arquivo está vazio.")
     exit(1)
 
-# remove OUTPUT_FILE if it exists
-if os.path.exists(OUTPUT_FILE):
-    os.remove(OUTPUT_FILE)
+# remove OUTPUT_FILE_CLEAN if it exists
+if os.path.exists(OUTPUT_FILE_CLEAN):
+    os.remove(OUTPUT_FILE_CLEAN)
 
 print(f"Total number of rows: {data.shape[0]}") # Total number of rows: 6167875
 
@@ -44,6 +45,41 @@ print(f"Total number of rows with date >= '2024-03-01': {data.shape[0]}") # Tota
 data = data.sort_values(by=['device', 'data'])
 
 # Salva resultados em CSV
-output_file = OUTPUT_FILE
-data.to_csv(output_file, sep='|', index=False)
-print(f"Arquivo de saída gerado: {output_file}")
+output_file_clean = OUTPUT_FILE_CLEAN
+data.to_csv(output_file_clean, sep='|', index=False)
+print(f"Arquivo de saída gerado: {output_file_clean}")
+
+# Cria coluna "ano-mes"
+data['ano-mes'] = data['data'].dt.to_period('M').astype(str)
+
+# Sensores a serem analisados
+sensors = ['temperatura', 'umidade', 'luminosidade', 'ruido', 'eco2', 'etvoc']
+
+# Lista para armazenar os resultados
+result_rows = []
+
+# Agrupa por dispositivo e ano-mês
+grouped = data.groupby(['device', 'ano-mes'])
+
+for (device, year_month), group in grouped:
+    for sensor in sensors:
+        max_val = group[sensor].max()
+        min_val = group[sensor].min()
+        mean_val = group[sensor].mean()
+        
+        result_rows.append({
+            'device': device,
+            'ano-mes': year_month,
+            'sensor': sensor,
+            'valor_maximo': f"{max_val:.2f}",
+            'valor_medio': f"{mean_val:.2f}",
+            'valor_minimo': f"{min_val:.2f}",
+        })
+
+# Cria DataFrame de resultados
+result_df = pd.DataFrame(result_rows)
+
+# Salva resultados em CSV
+output_file_clean = OUTPUT_FILE_EXPECTED
+result_df.to_csv(output_file_clean, sep=';', index=False)
+print(f"Arquivo de saída gerado: {output_file_clean}")

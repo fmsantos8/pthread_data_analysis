@@ -5,12 +5,13 @@ device_t *get_device(linked_list_t *devices, const char *name) {
         return NULL;
     }
 
-    uint32_t number_of_devices = cls_linked_list_size(devices);
-    for (uint32_t i = 0; i < number_of_devices; ++i) {
-        device_t *device = (device_t *)cls_linked_list_get_data(devices, i);
+    node_t *current = cls_linked_list_get(devices, 0);
+    while (current != NULL) {
+        device_t *device = (device_t *)cls_linked_list_get_data(current);
         if (device && strcmp(device->name, name) == 0) {
-            return device;
+            return device; // Device found
         }
+        current = cls_linked_list_get_next(current);
     }
     return NULL; // Device not found
 }

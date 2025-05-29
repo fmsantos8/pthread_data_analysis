@@ -3,7 +3,7 @@
 linked_list_t *cls_linked_list_init(void) {
     linked_list_t *list = (linked_list_t *)malloc(sizeof(linked_list_t));
     list->head = NULL;
-    list->tail = NULL; // Initialize tail
+    list->tail = NULL;
     list->size = 0;
     return list;
 }
@@ -24,15 +24,15 @@ void cls_linked_list_add(linked_list_t *list, void *data) {
     list->tail = new_node;       // Update tail
 }
 
-void *cls_linked_list_get_data(linked_list_t *list, uint32_t index) {
-    if (list->head == NULL) {
-        return NULL; // List is empty
+node_t *cls_linked_list_get(linked_list_t *list, uint32_t index) {
+    if (list->head == NULL || index >= list->size) {
+        return NULL; // List is empty or index out of bounds
     }
     node_t *current = list->head;
     for (uint32_t i = 0; i < index && current != NULL; i++) {
         current = current->next;
     }
-    return current ? current->data : NULL;
+    return current;
 }
 
 void cls_linked_list_remove(linked_list_t *list, uint32_t index) {

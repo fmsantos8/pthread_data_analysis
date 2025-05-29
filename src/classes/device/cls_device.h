@@ -14,9 +14,7 @@ typedef struct {
     char name[32];
 
     linked_list_t *measures;
-
-    // stats_t *stats;
-    // uint32_t number_of_stats;
+    linked_list_t *stats;
 
 } device_t;
 

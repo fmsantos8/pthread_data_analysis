@@ -1,5 +1,38 @@
 #include "cls_device.h"
 
+#include <assert.h>
+#include <stdio.h>
+
+static void free_stats_data(linked_list_t *stats) {
+    if (!stats) {
+        return;
+    }
+
+    node_t *current = cls_linked_list_get(stats, 0);
+    while (current != NULL) {
+        measure_t *measure = (measure_t *)cls_linked_list_get_data(current);
+        cls_measure_deinit(measure);
+
+        current = cls_linked_list_get_next(current);
+    }
+}
+
+static stats_t *get_stats_by_date(linked_list_t *stats, date_t *date) {
+    if (!stats || !date) {
+        return NULL;
+    }
+
+    node_t *current = cls_linked_list_get(stats, 0);
+    while (current != NULL) {
+        stats_t *stat = (stats_t *)cls_linked_list_get_data(current);
+        if (cls_stats_is_same_month(stat, date)) {
+            return stat;
+        }
+        current = cls_linked_list_get_next(current);
+    }
+    return NULL;
+}
+
 device_t *cls_device_init(const char *name) {
     if (!name) {
         return NULL; // Handle null name case
@@ -13,6 +46,7 @@ device_t *cls_device_init(const char *name) {
     strncpy(device->name, name, sizeof(device->name) - 1);
     device->name[sizeof(device->name) - 1] = '\0'; // Ensure null termination
     device->measures = NULL;
+    device->stats = NULL;
 
     return device;
 }
@@ -34,26 +68,73 @@ void cls_device_add_measure(device_t *device, measure_t *measure) {
 }
 
 void cls_device_calculate_average_readings(device_t *device) {
-    (void)device; // Placeholder for future implementation
+
+    if (!device || !device->measures) {
+        return; // Handle null device or no measures
+    }
+
+    if (cls_linked_list_size(device->measures) == 0) {
+        return; // No measures to calculate average
+    }
+
+    free_stats_data(device->stats);
+    device->stats = cls_linked_list_init();
+    assert(device->stats != NULL);
+
+    node_t *current = cls_linked_list_get(device->measures, 0);
+    while (current != NULL) {
+        measure_t *measure = (measure_t *)cls_linked_list_get_data(current);
+        assert(measure != NULL);
+
+        date_t *date = cls_measure_get_date(measure);
+        stats_t *stats = get_stats_by_date(device->stats, date);
+        if (stats == NULL) {
+            stats = cls_stats_init(date);
+            assert(stats != NULL);
+            cls_linked_list_add(device->stats, stats);
+        }
+
+        sensor_readings_t *readings = cls_measure_get_readings(measure);
+        cls_stats_add_readings(stats, readings);
+        current = cls_linked_list_get_next(current);
+    }
 }
 
 float cls_device_get_minimum_reading(const device_t *device, sensor_type_t sensor, date_t *date) {
-    (void)device;   // Placeholder for future implementation
-    (void)sensor;   // Placeholder for future implementation
-    (void)date;     // Placeholder for future implementation
-    return FLT_MAX; // Return max float value as a placeholder
+    if (!device || !device->stats || sensor >= SENSOR_MAX || !date) {
+        return FLT_MAX;
+    }
+
+    stats_t *stats = get_stats_by_date(device->stats, date);
+    if (stats == NULL) {
+        return FLT_MAX;
+    }
+
+    return cls_stats_get_minimum_reading(stats, sensor);
 }
 
 float cls_device_get_average_reading(const device_t *device, sensor_type_t sensor, date_t *date) {
-    (void)device;   // Placeholder for future implementation
-    (void)sensor;   // Placeholder for future implementation
-    (void)date;     // Placeholder for future implementation
-    return FLT_MAX; // Return max float value as a placeholder
+    if (!device || !device->stats || sensor >= SENSOR_MAX || !date) {
+        return FLT_MAX;
+    }
+
+    stats_t *stats = get_stats_by_date(device->stats, date);
+    if (stats == NULL) {
+        return FLT_MAX;
+    }
+
+    return cls_stats_get_average_reading(stats, sensor);
 }
 
 float cls_device_get_maximum_reading(const device_t *device, sensor_type_t sensor, date_t *date) {
-    (void)device;   // Placeholder for future implementation
-    (void)sensor;   // Placeholder for future implementation
-    (void)date;     // Placeholder for future implementation
-    return FLT_MAX; // Return max float value as a placeholder
+    if (!device || !device->stats || sensor >= SENSOR_MAX || !date) {
+        return FLT_MAX;
+    }
+
+    stats_t *stats = get_stats_by_date(device->stats, date);
+    if (stats == NULL) {
+        return FLT_MAX;
+    }
+
+    return cls_stats_get_maximum_reading(stats, sensor);
 }
