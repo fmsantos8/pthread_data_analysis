@@ -1,13 +1,25 @@
 import pandas as pd
 import os
 
-os.system('cls' if os.name == 'nt' else 'clear')
-
 FILE_TO_PROCESS = 'devices.csv'
-OUTPUT_FILE = 'relatorio_dispositivos.csv'
+OUTPUT_FILE_CLEAN = FILE_TO_PROCESS.replace('.csv', '_clean.csv')
+OUTPUT_FILE_EXPECTED = FILE_TO_PROCESS.replace('.csv', '_expected.csv')
+
+if os.path.exists(OUTPUT_FILE_CLEAN):
+    if os.path.exists(OUTPUT_FILE_EXPECTED):
+        print(f"Os arquivos {OUTPUT_FILE_CLEAN} e {OUTPUT_FILE_EXPECTED} já existem. Abortando processo de limpeza dos dados.")
+        exit(1)
 
 file_path = FILE_TO_PROCESS
 data = pd.read_csv(file_path, sep='|')
+
+if data.empty:
+    print("O arquivo está vazio.")
+    exit(1)
+
+# remove OUTPUT_FILE_CLEAN if it exists
+if os.path.exists(OUTPUT_FILE_CLEAN):
+    os.remove(OUTPUT_FILE_CLEAN)
 
 print(f"Total number of rows: {data.shape[0]}") # Total number of rows: 6167875
 
@@ -32,6 +44,14 @@ print(f"Rows after removing all sensor null rows: {data.shape[0]}") # Rows after
 data = data[data['data'] >= '2024-03-01']
 print(f"Total number of rows with date >= '2024-03-01': {data.shape[0]}") # Total number of rows with data >= '2024-03-01': 4175008
 
+# Ordena as linhas por 'device' e 'data'
+data = data.sort_values(by=['device', 'data'])
+
+# Salva resultados em CSV
+output_file_clean = OUTPUT_FILE_CLEAN
+data.to_csv(output_file_clean, sep='|', index=False)
+print(f"Arquivo de saída gerado: {output_file_clean}")
+
 # Cria coluna "ano-mes"
 data['ano-mes'] = data['data'].dt.to_period('M').astype(str)
 
@@ -54,15 +74,15 @@ for (device, year_month), group in grouped:
             'device': device,
             'ano-mes': year_month,
             'sensor': sensor,
-            'valor_maximo': round(max_val, 2),
-            'valor_medio': round(mean_val, 2),
-            'valor_minimo': round(min_val, 2),
+            'valor_maximo': f"{max_val:.2f}",
+            'valor_medio': f"{mean_val:.2f}",
+            'valor_minimo': f"{min_val:.2f}",
         })
 
 # Cria DataFrame de resultados
 result_df = pd.DataFrame(result_rows)
 
 # Salva resultados em CSV
-output_file = OUTPUT_FILE
-result_df.to_csv(output_file, sep=';', index=False)
-print(f"Arquivo de saída gerado: {output_file}")
+output_file_clean = OUTPUT_FILE_EXPECTED
+result_df.to_csv(output_file_clean, sep=';', index=False)
+print(f"Arquivo de saída gerado: {output_file_clean}")
