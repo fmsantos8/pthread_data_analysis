@@ -68,8 +68,29 @@ prepare_data.py       # Script Python para preparar os dados de entrada
 
 ## Funcionamento do Projeto
 
-### TODO: DESCREVER UM POUCO MELHOR O QUE É A THREAD PRINCIPAL, THREAD DE PROCESSAMENTO (COLOCAR NOME DA TAREFA), EXPLICAR SOBRE O PREPARE_DATA.PY.
-### TODO: COLOCAR UM FLUXOGRAMA DO FUNCIONAMENTO DO PROJETO.
+O projeto é dividido em duas partes principais: a thread principal e as threads de processamento. A thread principal é responsável por carregar os dados do arquivo CSV, converter esses dados em objetos `device_t` e iniciar as threads de processamento. As threads de processamento consomem os objetos `device_t` da lista encadeada e realizam cálculos estatísticos sobre as medições dos dispositivos. Após o processamento, os resultados são coletados pela thread principal e escritos em um arquivo CSV de saída.
+
+Antes do projeto em C rodar, é necessário preparar os dados de entrada, removendo medições inválidas do arquivo `devices.csv` removendo colunas não consideradas na análise, como `id`, `contagem`, `latitude` e`longitude`. Isso é feito através do script Python `prepare_data.py`, que gera o arquivo `devices_clean.csv` com os dados limpos e prontos para serem processados pelo código em C. Ainda nesse script, é gerado o arquivo `devices_expected.csv`, que contém os dados esperados para comparação com o resultado do código em C, usados para validar a saída do programa.
+
+A seguir, uma visão geral do fluxo do código:
+1. A thread principal realiza a leitura do arquivo CSV `devices.csv` usando a biblioteca `lib_csv`.
+2. Após isso, a thread principal ainda faz a conversão das strings da struct `csv_data_t` lidas do CSV em objetos da classe `device_t` usando a biblioteca `device_mapper`. É importante ressaltar que nesse passo do código, **as medições não são processadas ou agrupadas**, apenas convertidas de strings para objetos com seus respectivos tipos, como por exemplo, o campo `temperatura` do CSV é convertido para o tipo `float` na classe `measure_t`.
+3. Com a conversão concluída, a thread principal inicia as threads de processamento, com base no número de núcleos disponíveis no sistema, portanto, o número de threads criadas será igual ao número de núcleos disponíveis.
+4. Já nas threads de processamento será feito o agrupamento das medições por mês e o cálculo das estatísticas (mínimo, máximo e média) para cada dispositivo. Cada thread consome objetos `device_t` da lista encadeada (`device_list`) declarada no arquivo `main.c` e executa a análise estatística das medições.
+5. Os cálculos estatísticos são realizados dentro da função `cls_device_process_readings` da classe `device_t`, que percorre todas as medições (`measure_t`) do dispositivo e agrupa as medições por mês na lista encadeada `stats_t`. Para o cálculo de todas as medições, é utilizado o método `cls_stats_add_readings` da classe `stats_t`, que calcula os valores de mínimo, máximo e média. Um ponto importante é que todas as medições que forem inválidas (com valor `FLT_MAX`) são ignoradas e não são consideradas nos cálculos estatísticos, ou seja, não afetam os valores de mínimo, máximo e média.
+6. Após o processamento, a thread principal coleta os resultados das threads de processamento, converte os objetos `device_t` em uma estrutura `csv_data_t` utilizando a função `lib_device_mapper_to_csv` da biblioteca `device_mapper` e escreve os dados no arquivo `devices_output.csv` usando a biblioteca `lib_csv`.
+
+### Classes 
+
+1. `device_t`: Representa um dispositivo com suas medições e estatísticas mensais.
+2. `measure_t`: Representa uma medição de um dispositivo, ou seja, um objeto `measure_t` contém os dados de uma linha do CSV, incluindo a data e as leituras dos sensores.
+3. `stats_t`: Representa e agrupa as estatísticas mensais de um dispositivo, incluindo os valores mínimo, máximo e média das leituras dos sensores.
+4. `linked_list_t`: Implementa uma lista encadeada genérica para armazenar objetos de qualquer tipo, usando ponteiros `void`.
+
+### Bibliotecas
+
+1. `lib_csv`: Biblioteca para manipulação de arquivos CSV, incluindo leitura e escrita de dados.
+2. `device_mapper`: Biblioteca que converte dados CSV em objetos `device_t` e vice-versa, facilitando a manipulação dos dados no código.
 
 ### Como o CSV é carregado para o programa?
 
@@ -139,4 +160,4 @@ As threads criadas usam a biblioteca POSIX `pthreads`, então elas rodam em modo
 
 ### Possíveis problemas/melhorias
 
-Atualmente as threads de processamento não escrevem o arquivo de saída diretamente, o que poderia ser uma melhoria para evitar que a thread principal precise coletar todos os resultados antes de escrever no arquivo. Isso poderia ser implementado utilizando uma fila compartilhada entre as threads de processamento e a thread principal, onde cada thread escreveria seu resultado assim que terminasse o processamento de um objeto `device_t`.
+Atualmente, as threads de processamento não escrevem o arquivo de saída diretamente, o que poderia ser uma melhoria para evitar que a thread principal precise coletar todos os resultados antes de escrever no arquivo. Isso poderia ser implementado utilizando uma fila compartilhada entre as threads de processamento e a thread principal, onde cada thread escreveria seu resultado assim que terminasse o processamento de um objeto `device_t`.
