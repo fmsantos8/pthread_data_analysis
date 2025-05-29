@@ -9,6 +9,9 @@ else
 fi
 
 echo "Executando prepare_data.py para preparar os dados..."
+python3 -m venv /app/venv > /dev/null 2>&1 && \
+/app/venv/bin/pip install --upgrade pip --no-cache-dir > /dev/null 2>&1 && \
+/app/venv/bin/pip install pandas --no-cache-dir > /dev/null 2>&1
 /app/venv/bin/python /app/prepare_data.py
 
 echo "Analisando dados..."
